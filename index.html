@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Class Link Hub</title>
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--text:#1b1f24;--muted:#677084;--line:#e4e7ec;--accent:#0f766e;--accent-ink:#fff;--soft:#e6f4f2;--radius:14px;--shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06)}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1317;--panel:#171c22;--text:#e8ebef;--muted:#9099a8;--line:#262d36;--accent:#2dd4bf;--accent-ink:#06201d;--soft:#12302d;--shadow:none}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.muted{color:var(--muted)}
+
+/* header */
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+header h1{font-size:17px;margin:0}
+.icon-btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;width:38px;height:38px;display:grid;place-items:center;font-size:18px}
+#menuBtn{display:none}
+#search{flex:1 1 240px;max-width:420px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-left:auto}
+.seg button{border:0;background:transparent;padding:8px 11px}
+.seg button.on{background:var(--soft);color:var(--accent);font-weight:600}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:9px 14px;font-weight:600;text-decoration:none;text-align:center;display:block}
+#demo{background:var(--soft);color:var(--accent);padding:6px 14px;font-size:13px;text-align:center}
+
+/* layout */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:260px minmax(0,1fr) 340px}
+#side,main,#detail{overflow:auto}
+#side{background:var(--panel);border-right:1px solid var(--line);padding:10px 8px}
+main{padding:14px 16px}
+#detail{background:var(--panel);border-left:1px solid var(--line);padding:18px}
+#scrim{display:none}
+
+/* tree */
+#tree ul{list-style:none;margin:0;padding:0}
+.row{display:flex;align-items:center;gap:2px;padding-left:calc(var(--d) * 14px);border-radius:8px}
+.row:hover{background:var(--bg)}
+.row.active{background:var(--soft)}
+.row.active .lbl{color:var(--accent);font-weight:600}
+.caret{width:26px;height:30px;border:0;background:none;color:var(--muted);transition:transform .15s;font-size:16px;flex:none}
+.caret.open{transform:rotate(90deg)}
+span.caret{display:inline-block}
+.lbl{flex:1;text-align:left;border:0;background:none;padding:6px 4px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnt{font-size:12px;color:var(--muted);padding:0 8px}
+
+/* gallery */
+.crumb{color:var(--muted);font-size:13px;margin-bottom:12px}
+.crumb b{color:var(--text)}
+#gallery.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+#gallery.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;box-shadow:var(--shadow);transition:transform .12s}
+.card:hover{transform:translateY(-2px)}
+.card.sel{border-color:var(--accent);outline:2px solid var(--accent)}
+.cover{height:92px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:26px;letter-spacing:1px}
+.cbody{padding:12px;min-width:0}
+.ctitle{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csub{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--soft);color:var(--accent);border-radius:999px;padding:2px 9px;font-size:12px}
+#gallery.list .card{display:flex}
+#gallery.list .cover{width:76px;height:auto;flex:none;font-size:20px}
+#gallery.list .cbody{flex:1}
+.empty{grid-column:1/-1;color:var(--muted);text-align:center;padding:40px 10px}
+
+/* detail */
+#detail h2{margin:0 0 4px;font-size:19px}
+#detail .path{color:var(--muted);font-size:13px;margin-bottom:6px}
+dl{display:grid;grid-template-columns:84px 1fr;gap:10px 8px;margin:16px 0}
+dt{color:var(--muted)}
+dd{margin:0;font-weight:500}
+.verified{font-size:13px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.actions{display:flex;flex-direction:column;gap:8px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 14px}
+#closeDetail{display:none;float:right}
+
+/* dialog */
+dialog{border:0;border-radius:18px;padding:0;width:min(520px,calc(100vw - 24px));max-height:92dvh;background:var(--panel);color:var(--text);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+form{padding:20px;display:grid;gap:12px}
+form h2{margin:0;font-size:18px}
+label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.field{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:10px;padding:10px 12px;width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12px;color:var(--muted)}
+.hp{position:absolute;left:-9999px;height:0;overflow:hidden}
+#formMsg{min-height:20px;font-size:13px}
+.err{color:#dc2626}
+.okmsg{color:var(--accent)}
+.formbtns{display:flex;gap:8px;justify-content:flex-end}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(30px);background:#1b1f24;color:#fff;padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;z-index:60;font-size:14px}
+#toast.on{opacity:1;transform:translateX(-50%)}
+
+/* tablet: sidebar becomes a drawer, detail stays on the right */
+@media (max-width:959px){
+  .app{grid-template-columns:minmax(0,1fr) 300px}
+  #menuBtn{display:grid}
+  #side{position:fixed;inset:0 auto 0 0;width:min(300px,85vw);z-index:30;transform:translateX(-100%);transition:transform .2s;box-shadow:var(--shadow)}
+  #side.open{transform:none}
+  #scrim.on{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20}
+}
+/* phone: single column, detail becomes a bottom sheet */
+@media (max-width:639px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  #search{order:5;flex-basis:100%;max-width:none}
+  #gallery.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  #detail{position:fixed;left:0;right:0;bottom:0;max-height:78dvh;border:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;z-index:25;transform:translateY(105%);transition:transform .22s;box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+  #detail.open{transform:none}
+  #closeDetail{display:grid}
+  .two{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header>
+  <button id="menuBtn" class="icon-btn" aria-label="Open folders">☰</button>
+  <h1>Class Link Hub</h1>
+  <input id="search" type="search" placeholder="Search groups, lecturers, venues…" aria-label="Search">
+  <div class="seg" id="layoutToggle" role="group" aria-label="Gallery layout">
+    <button data-l="grid" title="Grid">▦</button>
+    <button data-l="list" title="List">☰</button>
+  </div>
+  <button id="addBtn" class="primary">+ Add link</button>
+</header>
+<div id="demo" hidden>Demo mode: sample data only. Set API_URL in index.html to connect your Google Sheet.</div>
+
+<div class="app">
+  <aside id="side"><nav id="tree" aria-label="Subjects"></nav></aside>
+  <main>
+    <div id="crumb" class="crumb"></div>
+    <div id="gallery" class="grid"><p class="empty">Loading…</p></div>
+  </main>
+  <aside id="detail"></aside>
+</div>
+<div id="scrim"></div>
+
+<dialog id="addDlg">
+  <form id="addForm" autocomplete="off">
+    <h2>Add a WhatsApp group link</h2>
+    <label>Folder
+      <input class="field" name="path" list="paths" required maxlength="160" placeholder="Year 1 > Semester 1 > Anatomy">
+      <span class="hint">Use &gt; to make sub-folders. Pick an existing folder or type a new one.</span>
+    </label>
+    <datalist id="paths"></datalist>
+    <label>Group name
+      <input class="field" name="title" required maxlength="80" placeholder="e.g. Anatomy Lecture Group">
+    </label>
+    <div class="two">
+      <label>Section <input class="field" name="section" maxlength="40" placeholder="Section A"></label>
+      <label>Lecturer <input class="field" name="lecturer" maxlength="60" placeholder="Dr. Name"></label>
+    </div>
+    <div class="two">
+      <label>Day &amp; time <input class="field" name="time" maxlength="60" placeholder="Mon 8:00–10:00"></label>
+      <label>Venue <input class="field" name="venue" maxlength="60" placeholder="Lecture Hall 2"></label>
+    </div>
+    <label>WhatsApp link
+      <input class="field" name="link" type="url" required maxlength="200" placeholder="https://chat.whatsapp.com/…">
+    </label>
+    <label>Your name (optional, only the admin sees it)
+      <input class="field" name="added_by" maxlength="40">
+    </label>
+    <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div id="formMsg" role="status"></div>
+    <div class="formbtns">
+      <button type="button" class="btn" id="cancelBtn">Cancel</button>
+      <button type="submit" class="primary" id="submitBtn">Submit</button>
+    </div>
+  </form>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+// ====== SETTINGS ======
+const API_URL = '';   // <- paste your Apps Script Web App URL here (ends with /exec)
+// ======================
+
+const SEP = ' > ';
+const LINK_RE = /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{10,32}$/;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const splitPath = p => String(p || '').split('>').map(s => s.trim()).filter(Boolean);
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+
+const DEMO = [
+  {id:'d1',path:'Year 1 > Semester 1 > Anatomy',title:'Anatomy Lectures',section:'Section A',lecturer:'Dr. Aisha Rahman',time:'Mon 8:00–10:00',venue:'Lecture Hall 2',link:'https://chat.whatsapp.com/DEMOdemoDEMO1234',group_name:'Anatomy Y1 Sec A',last_checked:'2026-10-26'},
+  {id:'d2',path:'Year 1 > Semester 1 > Anatomy',title:'Anatomy Practical',section:'Section B',lecturer:'Dr. Hafiz Omar',time:'Wed 14:00–16:00',venue:'Lab 3',link:'https://chat.whatsapp.com/DEMOdemoDEMO5678',group_name:'',last_checked:''},
+  {id:'d3',path:'Year 1 > Semester 1 > Physiology',title:'Physiology Lectures',section:'Section A',lecturer:'Dr. Mei Ling',time:'Tue 10:00–12:00',venue:'Lecture Hall 1',link:'https://chat.whatsapp.com/DEMOdemoDEMO9012',group_name:'',last_checked:''},
+  {id:'d4',path:'Year 1 > Semester 2 > Biochemistry',title:'Biochemistry Tutorial',section:'Tutorial 2',lecturer:'Dr. Nur Syafiqah',time:'Thu 9:00–10:00',venue:'Room B204',link:'https://chat.whatsapp.com/DEMOdemoDEMO3456',group_name:'',last_checked:''},
+  {id:'d5',path:'Year 2 > Semester 1 > Pharmacology',title:'Pharmacology Lectures',section:'Section A',lecturer:'Dr. Imran Yusof',time:'Fri 8:00–10:00',venue:'Lecture Hall 3',link:'https://chat.whatsapp.com/DEMOdemoDEMO7890',group_name:'',last_checked:''}
+];
+
+let items = [], selectedPath = '', selectedId = null;
+let layout = store.get('layout', matchMedia('(max-width:639px)').matches ? 'list' : 'grid');
+const expanded = new Set(['']);
+
+/* ---------- data ---------- */
+const normalise = list => list.map(it => ({...it, path: splitPath(it.path).join(SEP)}));
+
+async function load() {
+  if (!API_URL) { items = normalise(DEMO); $('#demo').hidden = false; return renderAll(); }
+  const cached = store.get('items', null);
+  if (cached) { items = normalise(cached); renderAll(); }
+  try {
+    const res = await fetch(API_URL + '?action=list');
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Failed');
+    items = normalise(data.items);
+    store.set('items', data.items);
+  } catch (e) {
+    if (!cached) { $('#gallery').innerHTML = '<p class="empty">Couldn\'t load the list.<br><br><button class="btn" id="retry">Try again</button></p>'; return; }
+    toast('Offline: showing the saved list');
+  }
+  renderAll();
+}
+
+/* ---------- tree ---------- */
+function buildTree() {
+  const root = {name: 'All subjects', path: '', children: new Map(), count: 0};
+  for (const it of items) {
+    let node = root; node.count++;
+    const acc = [];
+    for (const part of splitPath(it.path)) {
+      acc.push(part);
+      if (!node.children.has(part)) node.children.set(part, {name: part, path: acc.join(SEP), children: new Map(), count: 0});
+      node = node.children.get(part); node.count++;
+    }
+  }
+  return root;
+}
+function allFolderPaths(node, out = []) {
+  for (const k of node.children.values()) { out.push(k.path); allFolderPaths(k, out); }
+  return out;
+}
+function renderNode(node, depth) {
+  const kids = [...node.children.values()].sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+  const open = expanded.has(node.path);
+  return `<li><div class="row ${node.path === selectedPath ? 'active' : ''}" style="--d:${depth}">
+    ${kids.length ? `<button class="caret ${open ? 'open' : ''}" data-toggle="${esc(node.path)}" aria-label="Expand or collapse">›</button>` : '<span class="caret"></span>'}
+    <button class="lbl" data-path="${esc(node.path)}">${esc(node.name)}</button><span class="cnt">${node.count}</span></div>
+    ${kids.length && open ? `<ul>${kids.map(k => renderNode(k, depth + 1)).join('')}</ul>` : ''}</li>`;
+}
+function renderTree() {
+  const root = buildTree();
+  $('#tree').innerHTML = `<ul>${renderNode(root, 0)}</ul>`;
+  $('#paths').innerHTML = allFolderPaths(root).map(p => `<option value="${esc(p)}">`).join('');
+}
+
+/* ---------- gallery ---------- */
+function visibleItems() {
+  const q = $('#search').value.trim().toLowerCase();
+  if (q) return items.filter(it => [it.title, it.path, it.section, it.lecturer, it.venue, it.time].join(' ').toLowerCase().includes(q));
+  return items.filter(it => !selectedPath || it.path === selectedPath || it.path.startsWith(selectedPath + SEP));
+}
+function cardHTML(it) {
+  const seg = splitPath(it.path).pop() || 'Other';
+  const h = [...seg].reduce((a, c) => a * 31 + c.charCodeAt(0) >>> 0, 7) % 360;
+  const initials = seg.split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  return `<article class="card ${it.id === selectedId ? 'sel' : ''}" tabindex="0" role="button" data-id="${esc(it.id)}">
+    <div class="cover" style="background:linear-gradient(135deg,hsl(${h} 55% 42%),hsl(${(h + 45) % 360} 60% 32%))">${esc(initials)}</div>
+    <div class="cbody"><div class="ctitle">${esc(it.title)}</div><div class="csub">${esc(seg)}</div>
+    <div class="chips">${it.section ? `<span class="chip">${esc(it.section)}</span>` : ''}${it.time ? `<span class="chip">${esc(it.time)}</span>` : ''}</div></div></article>`;
+}
+function renderGallery() {
+  const list = visibleItems();
+  const q = $('#search').value.trim();
+  const trail = selectedPath ? splitPath(selectedPath).map(esc).join(' › ') : 'All subjects';
+  $('#crumb').innerHTML = (q ? `Search results for <b>${esc(q)}</b>` : `<b>${trail}</b>`) + ` · ${list.length} group${list.length === 1 ? '' : 's'}`;
+  const g = $('#gallery');
+  g.className = layout;
+  g.innerHTML = list.length ? list.map(cardHTML).join('') :
+    `<p class="empty">Nothing here yet.<br><br><button class="btn" id="emptyAdd">Add the first link</button></p>`;
+  document.querySelectorAll('#layoutToggle button').forEach(b => b.classList.toggle('on', b.dataset.l === layout));
+}
+
+/* ---------- detail ---------- */
+function renderDetail() {
+  const el = $('#detail');
+  const it = items.find(i => i.id === selectedId);
+  const close = '<button class="icon-btn" id="closeDetail" aria-label="Close">✕</button>';
+  if (!it) { el.innerHTML = close + '<p class="muted">Select a group to see its section, lecturer, time and venue.</p>'; el.classList.remove('open'); return; }
+  const row = (k, v) => `<dt>${k}</dt><dd>${v ? esc(v) : '<span class="muted">–</span>'}</dd>`;
+  el.innerHTML = `${close}
+    <h2>${esc(it.title)}</h2>
+    <div class="path">${esc(it.path.split(SEP).join(' › '))}</div>
+    <dl>${row('Section', it.section)}${row('Lecturer', it.lecturer)}${row('Time', it.time)}${row('Venue', it.venue)}</dl>
+    ${it.group_name ? `<div class="verified">WhatsApp group name: <b>${esc(it.group_name)}</b>${it.last_checked ? ` · checked ${esc(String(it.last_checked).slice(0, 10))}` : ''}</div>` : ''}
+    <div class="actions">
+      <a class="primary" href="${LINK_RE.test(it.link) ? esc(it.link) : '#'}" target="_blank" rel="noopener noreferrer">Join on WhatsApp</a>
+      <button class="btn" data-act="copy">Copy link</button>
+      <button class="btn" data-act="report">Report broken or unrelated link</button>
+    </div>`;
+  el.classList.add('open');
+}
+
+function renderAll() { renderTree(); renderGallery(); renderDetail(); }
+
+/* ---------- actions ---------- */
+function selectPath(p) {
+  selectedPath = p; selectedId = null;
+  const parts = splitPath(p);
+  for (let i = 1; i <= parts.length; i++) expanded.add(parts.slice(0, i).join(SEP));
+  if (p === '') expanded.add('');
+  $('#search').value = '';
+  renderAll();
+  if (matchMedia('(max-width:959px)').matches) closeDrawer();
+}
+function selectItem(id) { selectedId = id; renderGallery(); renderDetail(); }
+function closeDrawer() { $('#side').classList.remove('open'); $('#scrim').classList.remove('on'); }
+
+async function report(it) {
+  const done = store.get('reported', []);
+  if (done.includes(it.id)) return toast('You already reported this one');
+  if (!confirm('Report this link as broken or not related to the subject?')) return;
+  if (API_URL) {
+    try { await fetch(API_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'report', id: it.id})}); } catch {}
+  }
+  store.set('reported', [...done, it.id]);
+  toast('Thanks, reported');
+}
+async function copyLink(it) {
+  try { await navigator.clipboard.writeText(it.link); toast('Link copied'); }
+  catch { toast('Could not copy. Long-press the Join button instead'); }
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ---------- add dialog ---------- */
+function cleanLink(v) { return String(v || '').trim().split(/[?#]/)[0].replace(/\/+$/, ''); }
+function formMsg(text, cls) { const m = $('#formMsg'); m.textContent = text; m.className = cls || ''; }
+
+function openAdd() {
+  $('#addForm').reset(); formMsg('');
+  $('#addForm').elements.path.value = selectedPath;
+  $('#addDlg').showModal();
+}
+async function submitForm(e) {
+  e.preventDefault();
+  const f = $('#addForm');
+  const data = Object.fromEntries(new FormData(f));
+  data.link = cleanLink(data.link);
+  data.path = splitPath(data.path).join(SEP);
+  if (!data.path) return formMsg('Please choose or type a folder.', 'err');
+  if (!LINK_RE.test(data.link)) return formMsg('That is not a WhatsApp group link (it should start with https://chat.whatsapp.com/).', 'err');
+  const btn = $('#submitBtn'); btn.disabled = true; formMsg('Checking the link…');
+  try {
+    if (!API_URL) {
+      items.push({...data, id: 'local' + Date.now(), group_name: '', last_checked: ''});
+      $('#addDlg').close(); selectedPath = data.path; renderAll();
+      return toast('Demo mode: added on this screen only');
+    }
+    const res = await fetch(API_URL, {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'add', ...data})});
+    const out = await res.json();
+    if (!out.ok) return formMsg(out.error || 'Something went wrong.', 'err');
+    $('#addDlg').close();
+    toast(out.status === 'approved' ? 'Added. It is live now.' : 'Thanks! It will show once the admin approves it.');
+    if (out.status === 'approved') load();
+  } catch (err) {
+    formMsg('Could not reach the server. Check your connection and try again.', 'err');
+  } finally { btn.disabled = false; }
+}
+
+/* ---------- events ---------- */
+$('#tree').addEventListener('click', e => {
+  const t = e.target.closest('[data-toggle]');
+  if (t) { const p = t.dataset.toggle; expanded.has(p) ? expanded.delete(p) : expanded.add(p); return renderTree(); }
+  const l = e.target.closest('[data-path]');
+  if (l) selectPath(l.dataset.path);
+});
+$('#gallery').addEventListener('click', e => { const c = e.target.closest('.card'); if (c) selectItem(c.dataset.id); });
+$('#gallery').addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.card')) { e.preventDefault(); selectItem(e.target.dataset.id); }
+});
+$('#detail').addEventListener('click', e => {
+  if (e.target.closest('#closeDetail')) { selectedId = null; renderGallery(); return renderDetail(); }
+  const a = e.target.closest('[data-act]');
+  const it = items.find(i => i.id === selectedId);
+  if (!a || !it) return;
+  a.dataset.act === 'copy' ? copyLink(it) : report(it);
+});
+document.addEventListener('click', e => {
+  if (e.target.id === 'retry') load();
+  if (e.target.id === 'emptyAdd') openAdd();
+});
+$('#search').addEventListener('input', renderGallery);
+$('#layoutToggle').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  layout = b.dataset.l; store.set('layout', layout); renderGallery();
+});
+$('#menuBtn').addEventListener('click', () => { $('#side').classList.add('open'); $('#scrim').classList.add('on'); });
+$('#scrim').addEventListener('click', closeDrawer);
+$('#addBtn').addEventListener('click', openAdd);
+$('#cancelBtn').addEventListener('click', () => $('#addDlg').close());
+$('#addForm').addEventListener('submit', submitForm);
+
+load();
+</script>
+</body>
+</html>
